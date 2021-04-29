@@ -1,0 +1,23 @@
+id: text1
+type: widget
+subtype: TextWidget2
+template:
+  ordered:
+    - heightType: auto
+    - horizontalAlign: left
+    - hidden: false
+    - imageWidth: fit
+    - verticalAlign: center
+    - tooltipText: ''
+    - value: moksh's new branch pineapple
+    - disableMarkdown: false
+    - overflowType: scroll
+style:
+  ordered: []
+position2:
+  position2:
+    row: 3
+    col: 4
+    height: 1
+    width: 3
+createdAt: 2021-04-29T21:04:50.828Z

@@ -17,3 +17,12 @@ appTemplate:
   responsiveLayoutDisabled: false
   createdAt: null
   loadingIndicatorsDisabled: false
+  testEntities:
+    array:
+      - object:
+          id: eb62fa9e-074d-4925-8fb4-29b659e5697c
+          name: test1
+          body: assertCondition(true)
+          type: test
+          pauseAllQueries: true
+          failureMessage: null

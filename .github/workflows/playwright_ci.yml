@@ -1,0 +1,56 @@
+name: App Tests
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+  # schedule:
+  #   - cron:  '*/30 * * * *'
+jobs:
+  retool-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tryretool/retool-onpremise
+        uses: actions/checkout@v2
+        with:
+          repository: 'tryretool/retool-onpremise'
+          # TODO: update + get branch that supports PA as well
+          ref: moksh/new-ci
+      - name: 'Use a one-off build to sync organizations and users from the file system'
+        # TODO: update (use later nightly build, without FS_watcher commented out)
+        # TODO: using PR build for now
+        run: sed -i 's/backend:X.Y.Z/pr-builds:2.87.7-23c8c15/g' Dockerfile
+      - name: Checkout tryretool/adminprotected
+        uses: actions/checkout@v2
+        with:
+          path: 'retool/apps'
+      - name: Move Retool configuration into the correct spot
+        run: mv retool/apps/.retool/config retool/config
+      - run: git init
+        working-directory: retool
+      - run: chmod -R 777 retool
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+      - run: cp docker.env.testing docker.env
+      - name: Start Retool in Docker Compose
+        run: docker-compose --profile testing up -d
+      - name: Setup
+        run: npm install && set -euf -o pipefail && mkdir ms-playwright && node ./generate.js
+        working-directory: ./testing
+      - name: Wait for localhost
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost:3000/'
+          responseCode: 200
+          timeout: 600000
+          interval: 500
+      - name: Run Tests
+        run: npx playwright install && npx playwright test
+        working-directory: ./testing/ms-playwright
+      - uses: actions/upload-artifact@v2
+        if: ${{ success() || failure() }}
+        with:
+          name: Recordings
+          path: testing/ms-playwright/test-results/

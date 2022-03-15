@@ -15,29 +15,29 @@ jobs:
         with:
           repository: 'tryretool/retool-onpremise'
           # TODO: update + get branch that supports PA as well
-          ref: moksh/new-ci
+          ref: moksh/pa-ci
       - name: 'Use a one-off build to sync organizations and users from the file system'
         # TODO: update (use later nightly build, without FS_watcher commented out)
         # TODO: using PR build for now
-        run: sed -i 's/backend:X.Y.Z/pr-builds:2.87.7-23c8c15/g' Dockerfile
-      - name: Checkout tryretool/adminprotected
+        run: sed -i 's/backend:X.Y.Z/one-offs:2.87.7-23c8c15/g' Dockerfile
+      - name: Checkout tryretool/admin-protected-apps
         uses: actions/checkout@v2
         with:
-          path: 'retool/apps'
-      - name: Move Retool configuration into the correct spot
-        run: mv retool/apps/.retool/config retool/config
-      - run: git init
-        working-directory: retool
-      - run: chmod -R 777 retool
+          path: 'retool-pa-repo'
+      # - name: Move Retool configuration into the correct spot
+        # run: mv retool/apps/.retool/config retool/config
+      # - run: git init
+        # working-directory: retool
+      - run: chmod -R 777 retool-pa-repo
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '12.x'
-      - run: cp docker.env.testing docker.env
+      - run: cp docker.env.testing docker.env && echo "BOOTSTRAP_REPO=1" >> docker.env
       - name: Start Retool in Docker Compose
-        run: docker-compose --profile testing up -d
+        run: BOOTSTRAP_SOURCE=./retool-pa-repo docker-compose --profile testing up -d
       - name: Setup
-        run: npm install && set -euf -o pipefail && mkdir ms-playwright && node ./generate.js
+        run: npm install && set -euf -o pipefail && mkdir ms-playwright && USING_PROTECTED_APPS=1 RETOOL_TEST_ACCOUNT=admin@seed.retool.com RETOOL_TEST_PASSWORD=password node ./generate.js
         working-directory: ./testing
       - name: Wait for localhost
         uses: nev7n/wait_for_response@v1
